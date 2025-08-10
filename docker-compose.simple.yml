@@ -1,0 +1,56 @@
+services:
+  # Database service
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    environment:
+      - MARIADB_ROOT_PASSWORD=rootpass
+      - MARIADB_DATABASE=tasksdb
+      - MARIADB_USER=user
+      - MARIADB_PASSWORD=pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    restart: unless-stopped
+
+  # Backend service
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=tasksdb
+      - DB_USER=user
+      - DB_PASSWORD=pass
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NODE_ENV=production
+    depends_on:
+      - backend
+      - mariadb
+    restart: unless-stopped
+
+volumes:
+  mariadb-data:
+
+networks:
+  default:
+    external: true
+    name: tasknet
