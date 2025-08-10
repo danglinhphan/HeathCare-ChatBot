@@ -96,3 +96,6 @@ out/
 test_*.py
 *_test.py
 test.md
+config.py
+.env
+.env.example
